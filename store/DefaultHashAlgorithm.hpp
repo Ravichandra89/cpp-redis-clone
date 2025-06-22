@@ -5,11 +5,11 @@
 #include <iostream>
 using namespace std;
 
-// Default hash: DJB2 algorithm
+// Default hash Algorithm
 class DefaultHash : public IHashFunction {
 public:
-    std::size_t hash(const std::string &key) const override {
-        std::size_t h = 5381;
+    size_t hash(const string &key) const override {
+        size_t h = 5381;
         for (unsigned char c : key) {
             h = ((h << 5) + h) + c; 
         }
