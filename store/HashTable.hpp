@@ -55,11 +55,26 @@ class HashTable
         if ((static_cast<double>(size_ + 1) / capacity) > loadFactor)
         {
             // TODO: Call the Resize method
+            resize(capacity);
         }
     }
 
-    void resize(size_t newCapacity)
-    {
+    void resize(std::size_t newCapacity) {
+        newCapacity = nextPowerOfTwo(newCapacity);
+        vector<HashNode*> newBuckets(newCapacity, nullptr);
+        for (size_t i = 0; i < capacity; ++i) {
+            HashNode *node = buckets[i];
+            while (node) {
+                HashNode *nextNode = node->next;
+                size_t newIdx = hashFn->hash(node->key) & (newCapacity - 1);
+                // Insert at head in new bucket
+                node->next = newBuckets[newIdx];
+                newBuckets[newIdx] = node;
+                node = nextNode;
+            }
+        }
+        buckets.swap(newBuckets);
+        capacity = newCapacity;
     }
 
     void clearAll()
