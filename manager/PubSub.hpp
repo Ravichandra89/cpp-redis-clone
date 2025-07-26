@@ -8,6 +8,7 @@
 #include <string>
 #include <mutex>
 #include <set>
+#include <sys/socket.h>
 
 using namespace std;
 
