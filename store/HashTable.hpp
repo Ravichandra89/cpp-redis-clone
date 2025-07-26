@@ -59,12 +59,15 @@ class HashTable
         }
     }
 
-    void resize(std::size_t newCapacity) {
+    void resize(std::size_t newCapacity)
+    {
         newCapacity = nextPowerOfTwo(newCapacity);
-        vector<HashNode*> newBuckets(newCapacity, nullptr);
-        for (size_t i = 0; i < capacity; ++i) {
+        vector<HashNode *> newBuckets(newCapacity, nullptr);
+        for (size_t i = 0; i < capacity; ++i)
+        {
             HashNode *node = buckets[i];
-            while (node) {
+            while (node)
+            {
                 HashNode *nextNode = node->next;
                 size_t newIdx = hashFn->hash(node->key) & (newCapacity - 1);
                 // Insert at head in new bucket
@@ -94,8 +97,12 @@ class HashTable
     }
 
 public:
-    HashTable(unique_ptr<IHashFunction> hashFn, size_t initialCapacity) : hashFn(move(hashFn)), capacity(initialCapacity), size_(0)
-    {
+    HashTable(unique_ptr<IHashFunction> hashFunction)
+        : hashFn(move(hashFunction)), capacity(128), size_(0) {
+        buckets = vector<HashNode *>(capacity, nullptr);
+    }
+
+    HashTable(unique_ptr<IHashFunction> hashFn, size_t initialCapacity) : hashFn(move(hashFn)), capacity(initialCapacity), size_(0) {
         buckets = vector<HashNode *>(capacity, nullptr);
     };
 
@@ -181,8 +188,14 @@ public:
         return false;
     }
 
-    struct Stats { std::size_t capacity; std::size_t size; double loadFactor; };
-    Stats stats() const {
+    struct Stats
+    {
+        std::size_t capacity;
+        std::size_t size;
+        double loadFactor;
+    };
+    Stats stats() const
+    {
         std::lock_guard<std::mutex> lock(mtx);
         return {capacity, size_, static_cast<double>(size_) / capacity};
     }
