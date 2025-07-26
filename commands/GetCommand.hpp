@@ -1,7 +1,7 @@
 #ifndef REDIS_IN_MEMORY_STORE_GET_COMMAND_HPP
 #define REDIS_IN_MEMORY_STORE_GET_COMMAND_HPP
 
-#include "ICommand.hpp";
+#include "ICommand.hpp"
 #include <string>
 using namespace std;
 

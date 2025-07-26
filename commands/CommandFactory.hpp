@@ -9,40 +9,42 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
-#include "functional"
-
+#include <functional> 
+#include <algorithm>  
 using namespace std;
 
-class CommandFactory {
-        using Creator = function<unique_ptr<ICommand>>();
-        unordered_map<string, Creator> registery;
+class CommandFactory
+{
+    using Creator = function<unique_ptr<ICommand>()>; 
 
-    public : 
-        CommandFactory() {
-            registery.emplace("SET", [](){
-                return make_unique<SetCommand>(); 
-            });
+    unordered_map<string, Creator> registery;
 
-            registery.emplace("GET", [](){ 
-                return make_unique<GetCommand>();
-            });
+public:
+    CommandFactory()
+    {
+        registery.emplace("SET", []()
+                          { return make_unique<SetCommand>(); });
 
-            registery.emplace("DEL", [](){
-                return make_unique<DelCommand>();
-            });
+        registery.emplace("GET", []()
+                          { return make_unique<GetCommand>(); });
+
+        registery.emplace("DEL", []()
+                          { return make_unique<DelCommand>(); });
+    }
+
+    unique_ptr<ICommand> create(const string &name)
+    {
+        string uname = name;
+        transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+
+        auto it = registery.find(uname);
+        if (it != registery.end())
+        {
+            return it->second(); // call the lambda
         }
 
-        // createMethod Based on command name creating command
-            unique_ptr<ICommand> create(const string & name) {
-                string uname = name;
-                transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
-                auto it = registery.find(uname);
-                if (it != registery.end()) {
-                    return it->second();
-                }
-
-                return nullptr;
-            }
+        return nullptr;
+    }
 };
 
 #endif
