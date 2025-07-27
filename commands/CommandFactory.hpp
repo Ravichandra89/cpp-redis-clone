@@ -1,46 +1,51 @@
-#ifndef REDIS_IN_MEMORY_STORE_COMMAND_FACTORY_PATTERN_HPP
-#define REDIS_IN_MEMORY_STORE_COMMAND_FACTORY_PATTERN_HPP
+// CommandFactory.hpp
+#ifndef COMMAND_FACTORY_HPP
+#define COMMAND_FACTORY_HPP
 
+#include <unordered_map>
+#include <functional>
+#include <memory>
+#include <string>
+#include <algorithm>
+
+#include "ICommand.hpp"
 #include "SetCommand.hpp"
 #include "GetCommand.hpp"
 #include "DelCommand.hpp"
-#include "ICommand.hpp"
 
-#include <memory>
-#include <vector>
-#include <unordered_map>
-#include <functional> 
-#include <algorithm>  
-using namespace std;
+// Socket Commands
+#include "SubscribeCommand.hpp"
+#include "UnsubscribeCommand.hpp"
+#include "PublishCommand.hpp"
 
 class CommandFactory
 {
-    using Creator = function<unique_ptr<ICommand>()>; 
+    using Creator = function<unique_ptr<ICommand>()>;
 
-    unordered_map<string, Creator> registery;
+    unordered_map<string, Creator> registry;
 
 public:
     CommandFactory()
     {
-        registery.emplace("SET", []()
-                          { return make_unique<SetCommand>(); });
+        registry["SET"] = &SetCommand::create;
+        registry["GET"] = &GetCommand::create;
+        registry["DEL"] = &DelCommand::create;
 
-        registery.emplace("GET", []()
-                          { return make_unique<GetCommand>(); });
-
-        registery.emplace("DEL", []()
-                          { return make_unique<DelCommand>(); });
+        // Register Socket Commands
+        registry["SUBSCRIBE"] = &SubscribeCommand::create;
+        registry["UNSUBSCRIBE"] = &UnsubscribeCommand::create;
+        registry["PUBLISH"] = &PublishCommand::create;
     }
 
-    unique_ptr<ICommand> create(const string &name)
+    unique_ptr<ICommand> create(const string &name) const
     {
-        string uname = name;
-        transform(uname.begin(), uname.end(), uname.begin(), ::toupper);
+        string upperName = name;
+        transform(upperName.begin(), upperName.end(), upperName.begin(), ::toupper);
 
-        auto it = registery.find(uname);
-        if (it != registery.end())
+        auto it = registry.find(upperName);
+        if (it != registry.end())
         {
-            return it->second(); // call the lambda
+            return (it->second)();
         }
 
         return nullptr;
