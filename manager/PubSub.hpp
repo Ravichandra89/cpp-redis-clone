@@ -45,32 +45,40 @@ public:
         channels[channel].insert(clientSok);
     }
 
-    int unsubscribe(const string& channel, int clientSok) {
+    int unsubscribe(const string &channel, int clientSok)
+    {
         lock_guard<mutex> lock(mtx);
-        
+
         // Find the channel and erase from set
         auto it = channels.find(channel);
-        if (it == channels.end()) return 0;     // Channel not found
+        if (it == channels.end())
+            return 0; // Channel not found
         it->second.erase(clientSok);
         int count = it->second.size();
         // Erase the Subscriber
-        if(it->second.empty()) channels.erase(it);
+        if (it->second.empty())
+            channels.erase(it);
         return count;
     }
 
-    void unsubscribeAll(int clientSok) {
-        // Unsubscribe the all 
+    void unsubscribeAll(int clientSok)
+    {
+        // Unsubscribe the all
         lock_guard<mutex> lock(mtx);
 
         // looping
-        for (auto it = channels.begin(); it != channels.end();) {
+        for (auto it = channels.begin(); it != channels.end();)
+        {
             it->second.erase(clientSok);
-            if(it->second.empty()) it = channels.erase(it);
-            else it++;
+            if (it->second.empty())
+                it = channels.erase(it);
+            else
+                it++;
         }
     }
 
-    int subscriberCount(const string& channel) {
+    int subscriberCount(const string &channel)
+    {
         lock_guard<mutex> lock(mtx);
 
         // Find the channel
@@ -78,25 +86,58 @@ public:
         return it == channels.end() ? 0 : it->second.size();
     }
 
-    int publish(const std::string& channel, const std::string& message) {
-        // Double-locking: copy subscribers under lock, notify outside
-        std::set<int> subs;
+    int publish(const string &channel, const string &message)
+    {
+        set<int> subs;
         {
-            std::lock_guard<std::mutex> lock(mtx);
+            lock_guard<mutex> lock(mtx);
             auto it = channels.find(channel);
-            if (it == channels.end()) return 0;
+            if (it == channels.end())
+            {
+                cerr << "[WARN] No subscribers for channel: " << channel << "\n";
+                return 0;
+            }
             subs = it->second;
         }
+
         int count = 0;
-        for (int sock : subs) {
-            std::string resp = "*3\r\n";
+        for (int sock : subs)
+        {
+            string resp = "*3\r\n";
             resp += "$7\r\nmessage\r\n";
-            resp += "$" + std::to_string(channel.size()) + "\r\n" + channel + "\r\n";
-            resp += "$" + std::to_string(message.size()) + "\r\n" + message + "\r\n";
-            send(sock, resp.data(), resp.size(), 0);
-            ++count;
+            resp += "$" + to_string(channel.size()) + "\r\n" + channel + "\r\n";
+            resp += "$" + to_string(message.size()) + "\r\n" + message + "\r\n";
+
+            if (send(sock, resp.data(), resp.size(), 0) <= 0)
+            {
+                cerr << "[ERROR] Failed to send to subscriber (sock=" << sock << ")\n";
+            }
+            else
+            {
+                ++count;
+            }
         }
+
+        cout << "[INFO] Published to " << count << " subscriber(s) on channel: " << channel << "\n";
         return count;
+    }
+
+    // Removing client - Method
+    void removeClient(int clientSok)
+    {
+        lock_guard<mutex> lock(mtx);
+        for (auto it = channels.begin(); it != channels.end();)
+        {
+            it->second.erase(clientSok);
+            if (it->second.empty())
+            {
+                it = channels.erase(it);
+            }
+            else
+            {
+                it++;
+            }
+        }
     }
 };
 
