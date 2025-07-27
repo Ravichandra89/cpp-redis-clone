@@ -21,6 +21,8 @@ class DelCommand : public ICommand {
             }
             return ":" + to_string(deleted) + "\r\n";
         }
+
+        static unique_ptr<ICommand> create() { return make_unique<DelCommand>(); }
 };
 
 #endif

@@ -1,17 +1,21 @@
-/**
- * Adapter Pattern Interface for Socket Commands : PUBLISH, SUBSCRIBE, UNSUBSCRIBE
- */
-#ifndef REDIS_IN_MEMORY_PUB_SUB_SOCKET_INTERFACE_HPP
-#define REDIS_IN_MEMORY_PUB_SUB_SOCKET_INTERFACE_HPP
+// ISocketCommand.hpp
+#ifndef ISOCKET_COMMAND_HPP
+#define ISOCKET_COMMAND_HPP
 
-#include <string>
-#include <vector>
-using namespace std;
+#include "ICommand.hpp"
 
-class ISocketCommand {
-    public: 
-        virtual ~ISocketCommand() = default;
-        virtual void execute(int clientSok, const vector<string> &args) = 0;
+class ISocketCommand : public ICommand
+{
+public:
+    // Override standard execute() to disable default execution
+    std::string execute(HashTable &, const std::vector<std::string> &) override
+    {
+        return "-ERR socket command not usable in standard command context\r\n";
+    }
+
+    virtual void execute(int clientSock, const std::vector<std::string> &args) = 0;
+
+    virtual ~ISocketCommand() = default;
 };
 
-#endif
+#endif // ISOCKET_COMMAND_HPP

@@ -22,6 +22,8 @@ class GetCommand : public ICommand {
             const string & value = result.second;
             return "$" + to_string(value.size()) + "\r\n" + value + "\r\n";
         }
+
+        static std::unique_ptr<ICommand> create() { return std::make_unique<GetCommand>(); }
 };
 
 #endif
