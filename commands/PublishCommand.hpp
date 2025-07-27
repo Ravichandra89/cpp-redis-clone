@@ -1,39 +1,36 @@
-/**
- * Socket PUBLISH - Command
- */
-#ifndef REDIS_IN_MEMORY_PUB_SUB_SOCKET_PUBLISH_COMMAND_HPP
-#define REDIS_IN_MEMORY_PUB_SUB_SOCKET_PUBLISH_COMMAND_HPP
+// PublishCommand.hpp
+#ifndef PUBLISH_COMMAND_HPP
+#define PUBLISH_COMMAND_HPP
 
 #include "ISocketCommand.hpp"
 #include "../manager/PubSub.hpp"
-#include <sys/socket.h>
-#include <unistd.h>
 
 using namespace std;
 
-class PublishCommand : public ISocketCommand {
-    public: 
-        void execute(int clientSok, const vector<string> &args) override {
-            // args[0] = "PUBLISH" && args[1] = channel_name  && args[2] = "Message_Part"
+class PublishCommand : public ISocketCommand
+{
+public:
+    static unique_ptr<ICommand> create()
+    {
+        return make_unique<PublishCommand>();
+    }
 
-            if (args.size() < 3) {
-                const char* err = "-ERR wrong number of arguments for 'PUBLISH'\r\n";
-                send(clientSok, err, strlen(err), 0);
-                return;
-            }
-
-            const auto& channel = args[1];
-            string message;
-            for (size_t t=2; t<args.size(); t++) {
-                if (t > 2) message += ' ';
-                message += args[t];
-            }
-
-            int count = PubSubManager::instance().publish(channel, message);
-            string resp = ":" + std::to_string(count) + "\r\n";
-            send(clientSok, resp.data(), resp.size(), 0);     // Send_Method
+    void execute(int clientSock, const vector<string> &args) override
+    {
+        if (args.size() < 3)
+        {
+            string err = "-ERR usage: PUBLISH <channel> <message>\r\n";
+            send(clientSock, err.c_str(), err.size(), 0);
+            return;
         }
+
+        const string &channel = args[1];
+        const string &message = args[2];
+        PubSubManager::instance().publish(channel, message);
+
+        string resp = "+PUBLISHED to " + channel + "\r\n";
+        send(clientSock, resp.c_str(), resp.size(), 0);
+    }
 };
 
-#endif
-
+#endif 
