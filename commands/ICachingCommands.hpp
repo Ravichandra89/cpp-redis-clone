@@ -10,7 +10,7 @@ using namespace std;
 
 class ICachingCommands {
     public: 
-        // Destructor
+        // Destructor for caching
         virtual ~ICachingCommands() = default;
         virtual string execute(class RedisDataStore & store, const vector<string> &args) = 0;
 };

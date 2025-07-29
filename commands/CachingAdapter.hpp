@@ -13,9 +13,9 @@ class CachingAdapter : public ICommand {
 
         string execute(class HashTable &/*stub*/, const vector<string> &args) override {
 
-            extern RedisDataStore redisStore;
-            return caching_cmd->execute(redistStore, args);
-    }
+            extern RedisDataStore & redisStore;
+            return caching_cmd->execute(redisStore, args);
+        }
 
 };
 

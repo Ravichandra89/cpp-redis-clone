@@ -22,6 +22,7 @@
 #include "HGetCommand.hpp"
 #include "HSetCommand.hpp"
 #include "StringIntegerCommand.hpp"
+#include "ExpireCommand.hpp"
 
 #include "CachingAdapter.hpp"
 
@@ -99,6 +100,14 @@ public:
 
         registry["LRANGE"] = []() {
             return make_unique<CachingAdapter> (lRangeCommand::create());
+        };
+
+        registry["EXPIRE"] = []() {
+            return make_unique<CachingAdapter> (ExpireCommand::create());
+        };
+
+        registry["TTL"] = []() {
+            return make_unique<CachingAdapter> (TtlCommand::create());
         };
     }
 
