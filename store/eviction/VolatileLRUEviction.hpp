@@ -33,6 +33,22 @@ class VolatileLRU : public EvictionPolicy {
             mp[key] = order.begin();
         }
         
+        bool isRemovable(const string& key) const override {
+            return volatile_Keys.count(key) > 0;
+        } 
+
+        string selectEvictionKey() override {
+            // Select key to evict
+            while (!order.empty()) {
+                string target = order.back();
+                order.pop_back();
+                mp.erase(target);
+                volatile_Keys.erase(target);
+                return target;
+            }
+
+            return {};
+        }
 };
 
 #endif
